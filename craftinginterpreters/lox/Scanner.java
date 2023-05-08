@@ -82,7 +82,11 @@ class Scanner {
                 addToken(SEMICOLON);
                 break;
             case '*':
-                addToken(STAR);
+                if (match('/')) {
+                    Lox.error(line, "Unexpected */");
+                } else {
+                    addToken(STAR);
+                }
                 break;
             case '!':
                 addToken(match('=') ? BANG_EQUAL : BANG);
@@ -101,6 +105,29 @@ class Scanner {
                     // A comment goes until the end of the line.
                     while (peek() != '\n' && !isAtEnd())
                         advance();
+                } else if (match('*')) {
+                    /*
+                     * This is a comment
+                     * 
+                     */
+                    boolean foundRightSide = false;
+                    while (!isAtEnd()) {
+                        if (peek() == '*' && peekNext() == '/') {
+                            foundRightSide = true;
+                            // skip this and the next one
+                            advance();
+                            advance();
+                            break;
+                        } else {
+                            if (peek() == '\n') {
+                                line++;
+                            }
+                            advance();
+                        }
+                    }
+                    if (!foundRightSide) {
+                        Lox.error(line, "No matching */ for /*");
+                    }
                 } else {
                     addToken(SLASH);
                 }

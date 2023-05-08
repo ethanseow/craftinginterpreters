@@ -1,0 +1,20 @@
+// Hello, world program
+print "Hello, world!";
+
+// Variables and expressions
+var greeting = "Hello,";
+var name = "world";
+print greeting + " " + name + "!";
+/*
+    this is a comment
+*/
+// Control flow
+var number = 42;
+if (number > 0) {
+  print "Positive";
+} else if (number < 0) {
+  print "Negative";
+} else {
+  print "Zero";
+}
+    This is a comment

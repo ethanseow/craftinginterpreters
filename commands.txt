@@ -1,0 +1,2 @@
+cd "Computer Science" && java com.craftinginterpreters.lox.Lox ./com/craftinginterpreters/lox/hello.lox
+cd "Computer Science" && javac com/craftinginterpreters/lox/*.java 
