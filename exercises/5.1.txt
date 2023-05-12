@@ -1,0 +1,13 @@
+expr -> expr subexpr
+expr -> NUMBER
+expr -> ID
+
+subexpr -> subexpr subexpr
+subexpr -> .IDENTIFIER
+subexpr -> s2
+
+s2 -> ()
+s2 -> (s3)
+
+s3 -> expr
+s3 -> expr, s3
