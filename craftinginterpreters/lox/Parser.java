@@ -28,9 +28,16 @@ class Parser {
     }
 
     private Expr ternary() {
-        Expr expr = equality();
-
-        return expr;
+        Expr expr;
+        Expr cond = equality();
+        if (match(QUESTION)) {
+            Expr trueCond = expression();
+            consume(COLON, "Expect : after ?");
+            Expr falseCond = expression();
+            expr = new Expr.Ternary(cond, trueCond, falseCond);
+            return expr;
+        }
+        return cond;
     }
 
     private Expr equality() {
