@@ -81,6 +81,12 @@ class Scanner {
             case ';':
                 addToken(SEMICOLON);
                 break;
+            case '?':
+                addToken(QUESTION);
+                break;
+            case ':':
+                addToken(COLON);
+                break;
             case '*':
                 if (match('/')) {
                     Lox.error(line, "Unexpected */");

@@ -11,6 +11,10 @@ abstract class Expr {
         R visitLiteralExpr(Literal expr);
 
         R visitUnaryExpr(Unary expr);
+
+        R visitCommaExpr(Comma expr);
+
+        R visitTernaryExpr(Ternary expr);
     }
 
     static class Binary extends Expr {
@@ -71,5 +75,39 @@ abstract class Expr {
         final Expr right;
     }
 
+    static class Comma extends Expr {
+        Comma(Expr left, Expr right) {
+            this.left = left;
+            this.right = right;
+        }
+
+        @Override
+        <R> R accept(Visitor<R> visitor) {
+            return visitor.visitCommaExpr(this);
+        }
+
+        final Expr left;
+        final Expr right;
+    }
+
+    static class Ternary extends Expr {
+        Ternary(Expr cond, Expr trueOutput, Expr falseOutput) {
+            this.cond = cond;
+            this.trueOutput = trueOutput;
+            this.falseOutput = falseOutput;
+        }
+
+        @Override
+        <R> R accept(Visitor<R> visitor) {
+            return visitor.visitTernaryExpr(this);
+        }
+
+        final Expr cond;
+        final Expr trueOutput;
+        final Expr falseOutput;
+
+    }
+
     abstract <R> R accept(Visitor<R> visitor);
+
 }

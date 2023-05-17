@@ -1,0 +1,6 @@
+/*
+    // f1() is called (evaluated)
+    // first followed by f2().
+    // The returned value of f2() is assigned to j
+    int j = (f1(), f2());
+*/
