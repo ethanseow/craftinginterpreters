@@ -24,20 +24,7 @@ class Parser {
     }
 
     private Expr expression() {
-        return ternary();
-    }
-
-    private Expr ternary() {
-        Expr expr;
-        Expr cond = equality();
-        if (match(QUESTION)) {
-            Expr trueCond = expression();
-            consume(COLON, "Expect : after ?");
-            Expr falseCond = expression();
-            expr = new Expr.Ternary(cond, trueCond, falseCond);
-            return expr;
-        }
-        return cond;
+        return equality();
     }
 
     private Expr equality() {
@@ -112,19 +99,8 @@ class Parser {
 
         if (match(LEFT_PAREN)) {
             Expr expr = comparison();
-            if (match(COMMA)) {
-                Expr right = comparison();
-                expr = new Expr.Comma(expr, right);
-                while (match(COMMA)) {
-                    right = comparison();
-                    expr = new Expr.Comma(expr, right);
-                }
-                consume(RIGHT_PAREN, "Expect ')' after expression.");
-                return expr;
-            } else {
-                consume(RIGHT_PAREN, "Expect ')' after expression.");
-                return new Expr.Grouping(expr);
-            }
+            consume(RIGHT_PAREN, "Expect ')' after expression.");
+            return new Expr.Grouping(expr);
         }
         throw error(peek(), "Expect expression.");
     }
