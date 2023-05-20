@@ -1,10 +1,12 @@
 package com.craftinginterpreters.lox;
 
 import java.util.List;
+import java.util.Stack;
 
 class Interpreter implements Expr.Visitor<Object>,
         Stmt.Visitor<Void> {
     private Environment environment = new Environment();
+    private Stack<Boolean> whileStack = new Stack<Boolean>();
 
     void interpret(List<Stmt> statements) {
         try {
@@ -16,8 +18,34 @@ class Interpreter implements Expr.Visitor<Object>,
         }
     }
 
+    @Override
+    public Void visitBreakStmt(Stmt.Break stmt) {
+        if (whileStack.empty()) {
+            throw new RuntimeError(stmt.token, "Cannot break outside of a loop.");
+        }
+        whileStack.pop();
+        whileStack.push(false);
+        return null;
+    }
+
+    @Override
+    public Void visitIfStmt(Stmt.If stmt) {
+        if (isTruthy(evaluate(stmt.condition))) {
+            execute(stmt.thenBranch);
+        } else if (stmt.elseBranch != null) {
+            execute(stmt.elseBranch);
+        }
+        return null;
+    }
+
     private void execute(Stmt stmt) {
-        stmt.accept(this);
+        if (whileStack.empty() || whileStack.peek() == true) {
+            stmt.accept(this);
+        }
+    }
+
+    private Object evaluate(Expr expr) {
+        return expr.accept(this);
     }
 
     public Void visitVarStmt(Stmt.Var stmt) {
@@ -50,6 +78,69 @@ class Interpreter implements Expr.Visitor<Object>,
         return null;
     }
 
+    @Override
+    public Object visitLiteralExpr(Expr.Literal expr) {
+        return expr.value;
+    }
+
+    @Override
+    public Object visitGroupingExpr(Expr.Grouping expr) {
+        return evaluate(expr.expression);
+    }
+
+    @Override
+    public Void visitExpressionStmt(Stmt.Expression stmt) {
+        evaluate(stmt.expression);
+        return null;
+    }
+
+    @Override
+    public Void visitPrintStmt(Stmt.Print stmt) {
+        evaluate(stmt.expression);
+        return null;
+    }
+
+    @Override
+    public Object visitUnaryExpr(Expr.Unary expr) {
+        Object right = evaluate(expr.right);
+
+        switch (expr.operator.type) {
+            case BANG:
+                return !isTruthy(right);
+            case MINUS:
+                checkNumberOperand(expr.operator, right);
+                return -(double) right;
+        }
+
+        // Unreachable.
+        return null;
+    }
+
+    @Override
+    public Void visitWhileStmt(Stmt.While stmt) {
+        whileStack.push(true);
+        while (isTruthy(evaluate(stmt.condition)) && whileStack.peek()) {
+            execute(stmt.body);
+        }
+        whileStack.pop();
+        return null;
+    }
+
+    @Override
+    public Object visitLogicalExpr(Expr.Logical expr) {
+        Object left = evaluate(expr.left);
+
+        if (expr.operator.type == TokenType.OR) {
+            if (isTruthy(left))
+                return left;
+        } else {
+            if (!isTruthy(left))
+                return left;
+        }
+
+        return evaluate(expr.right);
+    }
+
     void executeBlock(List<Stmt> statements,
             Environment environment) {
         Environment previous = this.environment;
@@ -77,49 +168,6 @@ class Interpreter implements Expr.Visitor<Object>,
         }
 
         return object.toString();
-    }
-
-    @Override
-    public Object visitLiteralExpr(Expr.Literal expr) {
-        return expr.value;
-    }
-
-    @Override
-    public Object visitGroupingExpr(Expr.Grouping expr) {
-        return evaluate(expr.expression);
-    }
-
-    private Object evaluate(Expr expr) {
-        return expr.accept(this);
-    }
-
-    @Override
-    public Void visitExpressionStmt(Stmt.Expression stmt) {
-        evaluate(stmt.expression);
-        return null;
-    }
-
-    @Override
-    public Void visitPrintStmt(Stmt.Print stmt) {
-        Object value = evaluate(stmt.expression);
-        System.out.println(stringify(value));
-        return null;
-    }
-
-    @Override
-    public Object visitUnaryExpr(Expr.Unary expr) {
-        Object right = evaluate(expr.right);
-
-        switch (expr.operator.type) {
-            case BANG:
-                return !isTruthy(right);
-            case MINUS:
-                checkNumberOperand(expr.operator, right);
-                return -(double) right;
-        }
-
-        // Unreachable.
-        return null;
     }
 
     private void checkNumberOperand(Token operator, Object operand) {
